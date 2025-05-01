@@ -1,7 +1,7 @@
 document.getElementById('scrapeBtn').addEventListener('click', async () => {
     const searchTerm = document.getElementById('searchTerm').value.trim();
     if (!searchTerm) {
-        alert('Please enter a search term.');
+        alert('Please enter a search term (e.g., dental clinics in London).');
         return;
     }
 
@@ -15,7 +15,7 @@ document.getElementById('scrapeBtn').addEventListener('click', async () => {
     resultsDiv.classList.add('d-none');
     resultsTable.innerHTML = '';
     scrapeBtn.disabled = true;
-    progressText.textContent = 'Scraping website URLs from Google Maps...';
+    progressText.textContent = `Starting scrape for "${searchTerm}"... Opening Chrome browser...`;
 
     try {
         // Call the scrape API
@@ -29,20 +29,23 @@ document.getElementById('scrapeBtn').addEventListener('click', async () => {
         if (data.error) {
             progressDiv.classList.remove('alert-info');
             progressDiv.classList.add('alert-danger');
-            progressText.textContent = `Error: ${data.error}`;
+            progressText.textContent = `Error: ${data.error}. Check console for details.`;
             return;
         }
 
         // Update progress
-        progressText.textContent = 'Extracting emails from websites...';
+        progressText.textContent = 'Scraping website URLs from Google Maps (watch Chrome browser)...';
         setTimeout(() => {
-            progressText.textContent = 'Scraping complete!';
+            progressText.textContent = 'Extracting emails from websites (watch Chrome browser)...';
+        }, 150000);  // Approximate time for website scraping
+        setTimeout(() => {
+            progressText.textContent = `Scraping complete! Found ${data.results.filter(r => r.email !== 'N/A').length} emails.`;
             progressDiv.classList.remove('alert-info');
             progressDiv.classList.add('alert-success');
 
             // Display results
             resultsDiv.classList.remove('d-none');
-            data.results.forEach(result => {
+            data.results.forEach((result, index) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${result.website}</td>
@@ -58,12 +61,12 @@ document.getElementById('scrapeBtn').addEventListener('click', async () => {
             downloadEmails.href = data.emails_csv;
             downloadWebsites.classList.remove('d-none');
             downloadEmails.classList.remove('d-none');
-        }, 1000);
+        }, 300000);  // Approximate total scraping time
 
     } catch (error) {
         progressDiv.classList.remove('alert-info');
         progressDiv.classList.add('alert-danger');
-        progressText.textContent = `Error: ${error.message}`;
+        progressText.textContent = `Error: ${error.message}. Check console or try again.`;
     } finally {
         scrapeBtn.disabled = false;
     }
