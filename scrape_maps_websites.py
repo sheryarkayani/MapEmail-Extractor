@@ -11,14 +11,23 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from webdriver_manager.chrome import ChromeDriverManager
 
+# Global flag to stop scraping
+stop_scraping = False
+
+def set_stop_flag():
+    """Set the global stop flag to True."""
+    global stop_scraping
+    stop_scraping = True
+
 def setup_driver():
-    """Set up visible Chrome driver."""
-    print("Initializing Chrome browser (visible mode)...")
+    """Set up Chrome driver (headless for Render, visible locally)."""
+    print("Initializing Chrome browser...")
     chrome_options = Options()
-    # Removed --headless for visible browser
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
+    # Uncomment for Render deployment
+    # chrome_options.add_argument("--headless")
     try:
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
         driver.maximize_window()
@@ -26,7 +35,6 @@ def setup_driver():
         return driver
     except Exception as e:
         print(f"Error initializing Chrome driver: {e}")
-        print("Ensure Google Chrome is installed and webdriver-manager is up-to-date.")
         return None
 
 def clean_url(url):
@@ -35,6 +43,10 @@ def clean_url(url):
         return ""
     parsed = urlparse(url)
     return f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
+
+def is_facebook_url(url):
+    """Check if the URL is a Facebook link."""
+    return "facebook.com" in url.lower()
 
 def scroll_results(driver, scroll_pane_selector, max_time=60):
     """Scroll the results pane to load more businesses."""
@@ -47,15 +59,18 @@ def scroll_results(driver, scroll_pane_selector, max_time=60):
         last_height = driver.execute_script("return arguments[0].scrollHeight", scroll_pane)
         
         while time.time() - start_time < max_time:
+            if stop_scraping:
+                print("Stopping scroll due to user request.")
+                break
             driver.execute_script("arguments[0].scrollTo(0, arguments[0].scrollHeight);", scroll_pane)
-            time.sleep(1)  # Reduced for efficiency
+            time.sleep(1)
             new_height = driver.execute_script("return arguments[0].scrollHeight", scroll_pane)
             if new_height == last_height:
                 print("Reached end of results or no new businesses loaded.")
                 break
             last_height = new_height
     except TimeoutException:
-        print("Timeout while scrolling results pane. Check internet connection or Google Maps loading.")
+        print("Timeout while scrolling results pane.")
     except Exception as e:
         print(f"Error scrolling results: {e}")
 
@@ -68,6 +83,9 @@ def get_business_links(driver, results_selector):
         )
         links = []
         for result in results:
+            if stop_scraping:
+                print("Stopping link extraction due to user request.")
+                break
             try:
                 link = result.get_attribute("href")
                 if link and "https://www.google.com/maps/place/" in link:
@@ -77,14 +95,18 @@ def get_business_links(driver, results_selector):
         print(f"Found {len(links)} business links.")
         return links
     except TimeoutException:
-        print("Timeout while loading business results. Google Maps may be slow.")
+        print("Timeout while loading business results.")
         return []
     except Exception as e:
         print(f"Error extracting business links: {e}")
         return []
 
-def extract_website_url(driver, url):
-    """Extract website URL from a business details page."""
+def extract_business_info(driver, url):
+    """Extract business name and website URL from a business details page."""
+    if stop_scraping:
+        print("Stopping business info extraction due to user request.")
+        return "", ""
+    
     print(f"Visiting business page: {url}")
     try:
         driver.get(url)
@@ -92,45 +114,60 @@ def extract_website_url(driver, url):
             EC.presence_of_element_located((By.TAG_NAME, "h1"))
         )
         
+        # Extract business name
+        business_name = ""
+        try:
+            name_element = driver.find_element(By.TAG_NAME, "h1")
+            business_name = name_element.text.strip()
+            print(f"Business name: {business_name}")
+        except NoSuchElementException:
+            print("No business name found.")
+        
+        # Extract website
         website = ""
         try:
             website_element = driver.find_element(By.CSS_SELECTOR, "a[data-item-id*='authority']")
             website = clean_url(website_element.get_attribute("href"))
-            print(f"Found website: {website}")
+            if is_facebook_url(website):
+                print("Skipping Facebook URL.")
+                website = ""
+            else:
+                print(f"Found website: {website}")
         except NoSuchElementException:
-            print("No website link found on this business page.")
+            print("No website link found.")
         
-        return website
+        return business_name, website
     except TimeoutException:
-        print(f"Timeout loading business page: {url}. Page may be slow or unresponsive.")
-        return ""
+        print(f"Timeout loading business page: {url}.")
+        return "", ""
     except Exception as e:
         print(f"Error processing business page {url}: {e}")
-        return ""
+        return "", ""
 
-def save_to_csv(websites, filename="websites.csv"):
-    """Save website URLs to a CSV file."""
-    print(f"Saving {len(websites)} websites to {filename}...")
+def save_to_csv(businesses, filename="websites.csv"):
+    """Save business names and website URLs to a CSV file."""
+    print(f"Saving {len(businesses)} businesses to {filename}...")
     try:
         with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(['Website'])
-            for website in websites:
+            writer.writerow(['Business Name', 'Website'])
+            for name, website in businesses:
                 if website:
-                    writer.writerow([website])
-        print(f"Websites successfully saved to {filename}.")
+                    writer.writerow([name, website])
+        print(f"Businesses successfully saved to {filename}.")
     except Exception as e:
         print(f"Error saving to CSV: {e}")
-        print("Check directory permissions or disk space.")
 
-def scrape_google_maps(search_term, max_time=300):
-    """Scrape website URLs from Google Maps, targeting 150 websites."""
+def scrape_google_maps(search_term, max_time=300, batch_size=20, start_idx=0):
+    """Scrape business names and website URLs from Google Maps in batches."""
+    global stop_scraping
+    stop_scraping = False
     driver = setup_driver()
     if not driver:
         return []
 
     start_time = time.time()
-    websites = set()  # Use set to avoid duplicates
+    businesses = set()  # (name, website)
     try:
         print("Navigating to Google Maps...")
         driver.get("https://www.google.com/maps")
@@ -153,41 +190,59 @@ def scrape_google_maps(search_term, max_time=300):
         
         business_links = get_business_links(driver, results_selector)
         
-        target_websites = 150
+        target_websites = batch_size
+        current_idx = 0
         for i, link in enumerate(business_links, 1):
-            if time.time() - start_time > max_time or len(websites) >= target_websites:
-                print(f"Stopping scrape: {len(websites)} websites collected or time limit reached.")
+            if current_idx < start_idx:
+                current_idx += 1
+                continue
+            if stop_scraping:
+                print("Scraping stopped by user.")
+                break
+            if time.time() - start_time > max_time or len(businesses) >= target_websites:
+                print(f"Stopping scrape: {len(businesses)} websites collected or time limit reached.")
                 break
             print(f"Processing business {i}/{len(business_links)}...")
-            website = extract_website_url(driver, link)
+            name, website = extract_business_info(driver, link)
             if website:
-                websites.add(website)
+                businesses.add((name, website))
         
+    except KeyboardInterrupt:
+        print("\nUser interrupted scraping (Ctrl+C). Saving progress...")
+        save_to_csv(businesses)
+        raise
     except TimeoutException:
-        print("Timeout during Google Maps search. Check internet or increase timeout.")
+        print("Timeout during Google Maps search.")
     except Exception as e:
         print(f"Error during scraping: {e}")
     finally:
         print("Closing Chrome browser...")
-        driver.quit()
+        try:
+            driver.quit()
+        except:
+            pass
     
-    websites = list(websites)
+    businesses = list(businesses)
     elapsed_time = time.time() - start_time
-    print(f"Scraping completed in {elapsed_time:.2f} seconds. Collected {len(websites)} websites.")
-    return websites
+    print(f"Scraping completed in {elapsed_time:.2f} seconds. Collected {len(businesses)} businesses.")
+    return businesses
 
-def main(search_term):
+def main(search_term, batch_size=20, start_idx=0):
     """Main function to run the Google Maps scraper."""
-    print(f"\n=== Starting Google Maps Scrape for: {search_term} ===")
-    websites = scrape_google_maps(search_term)
-    if websites:
-        print(f"\nFound {len(websites)} unique websites:")
-        for i, website in enumerate(websites, 1):
-            print(f"{i}. {website}")
-        save_to_csv(websites)
-    else:
-        print("No websites found. Try a different search term or check connectivity.")
-    return websites
+    print(f"\n=== Starting Google Maps Scrape for: {search_term} (Batch starting from {start_idx}) ===")
+    try:
+        businesses = scrape_google_maps(search_term, batch_size=batch_size, start_idx=start_idx)
+        if businesses:
+            print(f"\nFound {len(businesses)} unique businesses:")
+            for i, (name, website) in enumerate(businesses, 1):
+                print(f"{i}. {name}: {website}")
+            save_to_csv(businesses)
+        else:
+            print("No businesses found.")
+        return businesses
+    except KeyboardInterrupt:
+        print("\nScraping stopped by user.")
+        return []
 
 if __name__ == "__main__":
     search_term = input("Enter the search term (e.g., dental clinics in London): ").strip()

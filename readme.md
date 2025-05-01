@@ -1,171 +1,195 @@
 MapEmail Extractor - Free Google Maps Email Scraper
-MapEmail Extractor is a free email scraper designed to extract business website URLs and emails from Google Maps. Perfect for lead generation, this business email extractor targets industries like dental clinics, restaurants, or any business type in any location (e.g., "dental clinics in London"). With a user-friendly web interface, it scrapes website URLs, extracts one email per website from pages like "Contact Us" or footers, and saves results to CSV files. Clone this free Google Maps scraper from GitHub for fast, automated business email scraping!
+MapEmail Extractor is a free email scraper designed to extract business names, website URLs, and emails from Google Maps. Ideal for lead generation, this business email extractor targets industries like dental clinics or restaurants in any location (e.g., "dental clinics in London"). With a modern web interface, visible Chrome browser automation, and user-controlled scraping, it collects up to 150 websites to yield 100+ emails, pausing every 30 websites for user permission. Clone this free Google Maps scraper from GitHub for efficient business email scraping!
 Why Choose MapEmail Extractor?
-MapEmail Extractor is a powerful Google Maps email extractor that simplifies business email finding. Here’s why it stands out:
+MapEmail Extractor is a powerful Google Maps email extractor with:
 
-Free Email Scraper: Open-source, no-cost tool for extracting business emails.
-Google Maps Integration: Scrapes website URLs directly from Google Maps search results.
-Smart Email Extraction: Prioritizes "Contact Us," "About," and footer sections for accurate email scraping.
-Lead Generation Tool: Ideal for marketers targeting dental clinics, restaurants, or local businesses.
-SEO-Optimized Crawling: Skips irrelevant pages (e.g., news, privacy policies) for faster results.
-Web Interface: Responsive frontend for easy input and result viewing.
+Free Email Scraper: Open-source tool for business emails.
+Google Maps Integration: Scrapes 150+ business names and URLs.
+Smart Email Extraction: AI heuristics prioritize contact pages.
+Lead Generation Tool: Targets 100+ emails per search.
+Visible Automation: Chrome browser shows live scraping.
+User-Controlled: Pauses every 30 websites for permission.
+Modern UI: Clean design with progress bar and modals.
 
 Key Features
 
-Free Business Email Finder: Extracts one valid email per website for high-quality leads.
-Google Maps Scraper: Pulls website URLs for businesses in any city or region.
-Efficient Scraping: Limits each website scrape to 120 seconds, avoiding irrelevant pages.
-CSV Output: Generates websites.csv (URLs) and emails.csv (website-email pairs).
-Headless Chrome: Uses Selenium for fast, automated browsing.
-Flask API: Powers the web interface with a lightweight backend.
+Free Business Email Finder: Collects 100+ emails with business names.
+Google Maps Scraper: Extracts business details in ~300 seconds.
+Efficient Scraping: Limits website crawling to 10 pages, ~180 seconds each.
+CSV Output: Saves websites.csv (names, URLs) and emails.csv (names, URLs, emails).
+Ctrl+C Support: Stops scraping gracefully with progress saved.
+Batch Processing: Pauses after every 30 websites for user confirmation.
+AI Heuristics: Prioritizes high-yield pages for faster results.
 
 Project Structure
 scrappro/
-├── scrape_maps_websites.py      # Free Google Maps scraper for website URLs
-├── scrape_website_emails.py     # Business email extractor for websites
-├── business_email_scraper.py    # Bridges scripts for email scraping
-├── app.py                      # Flask API for web interface
+├── scrape_maps_websites.py      # Scrapes business names, URLs (visible Chrome)
+├── scrape_website_emails.py     # Extracts emails (batch processing)
+├── business_email_scraper.py    # Console-based bridge script
+├── app.py                      # Flask API with batch scraping
 ├── templates/
-│   └── index.html             # Frontend HTML
+│   └── index.html             # Modern UI with modals
 ├── static/
 │   ├── css/
-│   │   └── styles.css        # Custom CSS
+│   │   └── styles.css        # Custom styles
 │   └── js/
-│       └── script.js         # JavaScript for frontend
-├── websites.csv               # Intermediate CSV with website URLs
-├── emails.csv                # Final CSV with website URLs and emails
-└── README.md                  # Documentation for the free email scraper
+│       └── script.js         # Frontend logic
+├── requirements.txt            # Dependencies
+├── Dockerfile                 # For cloud deployment
+├── .gitignore                 # Excludes temporary files
+├── websites.csv               # CSV with names, URLs
+├── emails.csv                # CSV with names, URLs, emails
+└── README.md                  # Documentation
 
 Requirements
-To run this free Google Maps email scraper, ensure the following:
 
-Python: Version 3.6 or higher
+Python: 3.6+
 Dependencies:
 selenium
 webdriver-manager
 beautifulsoup4
 flask
+gunicorn
 
 
 Browser: Google Chrome
 System: Linux (tested on Ubuntu), macOS, or Windows
 
-Setup Instructions
-Follow these steps to set up MapEmail Extractor for business email scraping:
-1. Clone the Repository
-Clone the project from GitHub:
+Local Setup Instructions
+
+Clone Repository:
 git clone https://github.com/sheryarkayani/MapEmail-Extractor.git
 cd MapEmail-Extractor
 
-2. Install Dependencies
-Install required Python packages:
-pip install --upgrade selenium webdriver-manager beautifulsoup4 flask
 
-Verify installation:
+Install Dependencies:
+pip install --upgrade -r requirements.txt
+
+Verify:
 pip list
 
-Ensure selenium, webdriver-manager, beautifulsoup4, and flask are listed.
-3. Install Google Chrome
-Check Chrome version:
+
+Install Google Chrome:Check:
 google-chrome --version
 
-Install or update (Ubuntu example):
+Install (Ubuntu):
 sudo apt update
 sudo apt install google-chrome-stable
 
-4. Verify Directory Permissions
-Ensure write access for CSV output:
+
+Set Permissions:
 chmod u+w .
 
-5. Create Directory Structure
-Create the following directories:
+
+Create Directories:
 mkdir -p templates static/css static/js
 
-Verify all files are present:
 
-scrape_maps_websites.py
-scrape_website_emails.py
-business_email_scraper.py
-app.py
-templates/index.html
-static/css/styles.css
-static/js/script.js
-
-How to Use MapEmail Extractor
-1. Start the Web Application
-Run the Flask app:
+Run Locally:
 python3 app.py
 
-Open your browser and navigate to:
-http://localhost:5000
+Open http://localhost:5000.
 
-2. Use the Web Interface
 
-Enter Search Term: Input a term like dental clinics in London.
-Start Scraping: Click the "Start Scraping" button.
-View Results: See website URLs and emails in a table.
-Download CSVs: Download websites.csv and emails.csv using the provided buttons.
+How to Use MapEmail Extractor
+Web Interface
 
-3. Check Output Files
+Open: http://localhost:5000.
+Enter Search Term: e.g., dental clinics in London.
+Start Scraping: Click "Start Scraping", confirm in modal.
+Watch Chrome:
+Searches Google Maps, collects ~150 businesses.
+Scrapes emails in batches of 30 websites.
 
-websites.csv: Contains website URLs (e.g., https://www.chelseadentalclinic.co.uk/).
-emails.csv: Lists website-email pairs (e.g., https://www.chelseadentalclinic.co.uk/,contact@chelseadentalclinic.co.uk).
+
+Batch Permission:
+Modal prompts every 30 websites (5 pauses for 150 websites).
+Click "Proceed" to continue or "Cancel" to stop.
+
+
+Monitor Progress:
+Console: “Visiting: {url}”, “Found {n} emails”.
+UI: Progress bar, messages like “Scraping batch 2...”.
+
+
+View Results: Table shows business names, websites, emails.
+Download CSVs: Get websites.csv and emails.csv.
+Stop Scraping: Press Ctrl+C in console to save progress.
+
+Console Mode
+python3 business_email_scraper.py
+
+
+Input search term.
+Watch Chrome and console logs.
+Stop with Ctrl+C.
+Check CSVs for results.
 
 Example Output
-Below is a sample interaction with the Google Maps email extractor web interface:
 
 Enter: dental clinics in London
-Progress: "Scraping website URLs from Google Maps..." then "Extracting emails from websites..."
-Results (displayed in table):Website: https://www.nottinghilldentalclinic.com/, Email: info@nottinghilldentalclinic.com
-Website: https://www.chelseadentalclinic.co.uk/, Email: contact@chelseadentalclinic.co.uk
-...
+Chrome:
+Searches Google Maps, visits ~150 businesses.
+Scrapes emails, pausing every 30 websites.
 
 
-Download: Click buttons to download websites.csv and emails.csv.
+UI:
+Modal: “Start Scraping?”, “Continue Batch 2?”
+Table: Notting Hill Dental, https://..., info@...
+
+
+CSVs:
+websites.csv: ~150 businesses
+emails.csv: 100+ emails
+
+
 
 CSV File Formats
 websites.csv
-Website
-https://www.nottinghilldentalclinic.com/
-https://www.chelseadentalclinic.co.uk/
+Business Name,Website
+Notting Hill Dental,https://www.nottinghilldentalclinic.com/
+Chelsea Dental,https://www.chelseadentalclinic.co.uk/
 ...
 
 emails.csv
-Website,Email
-https://www.nottinghilldentalclinic.com/,info@nottinghilldentalclinic.com
-https://www.chelseadentalclinic.co.uk/,contact@chelseadentalclinic.co.uk
+Business Name,Website,Email
+Notting Hill Dental,https://www.nottinghilldentalclinic.com/,info@nottinghilldentalclinic.com
+Chelsea Dental,https://www.chelseadentalclinic.co.uk/,contact@chelseadentalclinic.co.uk
 ...
 
 Troubleshooting
-No Websites Found
+Chrome Not Opening
 
-Verify internet connectivity.
-Test the search term on Google Maps (e.g., try "dentists in London").
-Ensure Google Maps loads correctly in a browser.
+Verify:google-chrome --version
 
-No Emails Found
 
-Some websites may hide emails in images or JavaScript. Test with a known site like https://www.talbotplacedental.co.uk/.
-Check websites.csv for valid URLs.
+Install:sudo apt install google-chrome-stable
+
+
+Check:pip show webdriver-manager
+
+
+
+No Businesses Found
+
+Test term on Google Maps.
+Try dentists in London.
+
+Fewer Than 100 Emails
+
+Check websites.csv for 150+ entries.
+Test websites for plain-text emails.
+Increase max_time in scrape_website_emails.py.
 
 Timeouts
 
-Reduce WebDriverWait from 10 to 5 seconds in scrape_maps_websites.py or scrape_website_emails.py.
-Share console output for debugging.
+Reduce WebDriverWait to 3 seconds.
+Check internet.
 
-CSV Issues
+UI Issues
 
-Ensure write permissions:ls -l
-chmod u+w .
-
-
-Verify websites.csv exists before email scraping.
-
-Web Interface Issues
-
-Ensure Flask is running (python3 app.py).
-Check browser console for JavaScript errors.
-Verify templates/ and static/ directories exist.
+Ensure Flask running (python3 app.py).
+Check browser console.
 
 SEO-Optimized Keywords
 
@@ -178,26 +202,27 @@ Lead generation tool
 Business email extractor
 Website email scraper
 Email finder for marketing
-Local business email scraper
+Visible browser automation
+AI email scraping
+User-controlled scraping
 
-Contributing to MapEmail Extractor
-We welcome contributions to enhance this free email scraper! To contribute:
+Contributing
 
-Fork the repository: https://github.com/sheryarkayani/MapEmail-Extractor.
-Create a feature branch:git checkout -b feature/new-feature
-
-
-Commit changes:git commit -m 'Add new feature'
+Fork: https://github.com/sheryarkayani/MapEmail-Extractor.
+Branch:git checkout -b feature/new-feature
 
 
-Push to the branch:git push origin feature/new-feature
+Commit:git commit -m 'Add new feature'
 
 
-Open a Pull Request on GitHub.
+Push:git push origin feature/new-feature
+
+
+Open Pull Request.
 
 License
-This project is licensed under the MIT License. See the LICENSE file for details.
+MIT License. See LICENSE.
 Contact
-For issues, feature requests, or questions, open an issue on GitHub or contact the maintainer (@sheryarkayani).
+Issues? Open an issue on GitHub or contact @sheryarkayani.
 
-Free Google Maps email scraper for lead generation. Built to empower marketers and developers with efficient business email scraping. Last updated: May 1, 2025
+Free Google Maps email scraper for lead generation. Features visible browser automation, AI-driven email scraping, and user-controlled batch processing. Last updated: May 1, 2025
